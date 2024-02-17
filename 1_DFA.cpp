@@ -10,7 +10,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-int getSymbolIndex(char sym, char symbol[], int nSymbols)
+int getSymbolIndex(char sym, vector<char> &symbol, int nSymbols)
 {
     for (int i = 0; i < nSymbols; i++)
     {
@@ -25,20 +25,17 @@ int main()
 {
     // characteristics of a dfa
     int nStates, initialState, nFinalStates, nSymbols;
-    bool isFinal[64];
-    char symbol[32];
-    int transition[64][32];
     // auxillary variables
     int i, j, index;
     // fetching input from the file
     FILE *filePointer = fopen("1_DFA.txt", "r");
-
     fscanf(filePointer, "%d %d", &nStates, &initialState);
     fscanf(filePointer, "%d", &nFinalStates);
-    for (i = 0; i < nStates; i++)
-    {
-        isFinal[i] = 0;
-    }
+
+    vector<bool> isFinal(nStates,0);
+    vector<char> symbol;
+    vector<vector<int>> transition(nStates);
+    
     for (i = 0; i < nFinalStates; i++)
     {
         fscanf(filePointer, "%d", &index);
@@ -48,14 +45,18 @@ int main()
     fscanf(filePointer, "%d", &nSymbols);
     for (i = 0; i < nSymbols; i++)
     {
-        fscanf(filePointer, "%*c %c", &symbol[i]);
+        char temp;
+        fscanf(filePointer, "%*c %c", &temp);
+        symbol.push_back(temp);
     }
     for (i = 0; i < nStates; i++)
     {
         fscanf(filePointer, "%d", &index);
         for (j = 0; j < nSymbols; j++)
-        {
-            fscanf(filePointer, "%d", &transition[index][j]);
+        {   
+            int temp;
+            fscanf(filePointer, "%d",&temp);
+            transition[index].push_back(temp);
         }
     }
     // automata setup complete
@@ -68,7 +69,7 @@ int main()
         {
             return 0;
         }
-        int len = input.length();
+        int len = input.size();
         // String traversal starts here
         int currentState = initialState;
         for (int i = 0; i < len; i++)
