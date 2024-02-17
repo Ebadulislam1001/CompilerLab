@@ -10,55 +10,46 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-int getSymbolIndex(char sym, vector<char> &symbol, int nSymbols)
-{
-    for (int i = 0; i < nSymbols; i++)
-    {
-        if (sym == symbol[i])
-        {
-            return i;
-        }
-    }
-    return -1;
-}
 int main()
 {
     // characteristics of a dfa
     int nStates, initialState, nFinalStates, nSymbols;
-    // auxillary variables
-    int i, j, index;
+    vector<bool> isFinal(nStates, false);
+    map<char, int> symbolIndex;
+    vector<vector<int>> transition;
+
     // fetching input from the file
     FILE *filePointer = fopen("1_DFA.txt", "r");
     fscanf(filePointer, "%d %d", &nStates, &initialState);
     fscanf(filePointer, "%d", &nFinalStates);
-
-    vector<bool> isFinal(nStates,0);
-    vector<char> symbol;
-    vector<vector<int>> transition(nStates);
-    
-    for (i = 0; i < nFinalStates; i++)
+    for (int i = 0; i < nFinalStates; i++)
     {
-        fscanf(filePointer, "%d", &index);
-        if (index >= 0 && index < nStates)
-            isFinal[index] = 1;
+        int temp;
+        fscanf(filePointer, "%d", &temp);
+        if (temp >= 0 && temp < nStates)
+            isFinal[temp] = true;
     }
     fscanf(filePointer, "%d", &nSymbols);
-    for (i = 0; i < nSymbols; i++)
+    for (int i = 0; i < nSymbols; i++)
     {
         char temp;
         fscanf(filePointer, "%*c %c", &temp);
-        symbol.push_back(temp);
+        symbolIndex.insert({temp, i});
     }
-    for (i = 0; i < nStates; i++)
+    for (int i = 0; i < nStates; i++)
     {
-        fscanf(filePointer, "%d", &index);
-        for (j = 0; j < nSymbols; j++)
+        vector<int> row;
+        fscanf(filePointer, "%*d");
+        for (int j = 0; j < nSymbols; j++)
         {   
             int temp;
-            fscanf(filePointer, "%d",&temp);
-            transition[index].push_back(temp);
+            fscanf(filePointer, "%d", &temp);
+            row.push_back(temp);
         }
+        transition.push_back(row);
     }
+    fclose(filePointer);
+
     // automata setup complete
     while (1)
     {
@@ -69,21 +60,25 @@ int main()
         {
             return 0;
         }
-        int len = input.size();
+
         // String traversal starts here
         int currentState = initialState;
-        for (int i = 0; i < len; i++)
+        int currentSymbol;
+        for (int i = 0; i < input.size(); i++)
         {
             printf("State q%d on input %c leads us to ", currentState, input[i]);
-            int currentSymbol = getSymbolIndex(input[i], symbol, nSymbols);
-            if (currentSymbol < 0) // if the symbol is not defined
+            if (symbolIndex.find(input[i]) == symbolIndex.end()) // if the symbol is not defined
             {
                 currentState = -1;
-                printf("state q%d\n", currentState);
-                break;
+                printf("the null state", currentState);
+
             }
-            currentState = transition[currentState][currentSymbol];
-            printf("state q%d\n", currentState);
+            else
+            {
+                currentSymbol = symbolIndex[input[i]];
+                currentState = transition[currentState][currentSymbol];
+                printf("state q%d\n", currentState);
+            }
             if (currentState < 0) // if there is no transition possible
             {
                 break;
