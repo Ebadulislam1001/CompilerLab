@@ -2,12 +2,12 @@
 #include<string>
 using namespace std;
 
-void skipChars(FILE *&readPointer, int charCount)
+void skip_chars(FILE *&readPointer, int charCount)
 {
     for (int i = 0; i < charCount; i += 1)
         fgetc(readPointer);
 }
-void skipLines(FILE *&readPointer, int lineCount)
+void skip_lines(FILE *&readPointer, int lineCount)
 {
     for (int i = 0; i < lineCount; i += 1)
     {
@@ -16,13 +16,19 @@ void skipLines(FILE *&readPointer, int lineCount)
         fgetc(readPointer);
     }
 }
-int readInt(FILE *&readPointer)
+int read_int(FILE *&readPointer)
 {
     int ans = 0;
     fscanf(readPointer, "%d", &ans);
     return ans;
 }
-string readString(FILE *&readPointer, char delim)
+char read_char(FILE *&readPointer)
+{
+    char ans = ' ';
+    fscanf(readPointer, "%c", &ans);
+    return ans;
+}
+string read_string(FILE *&readPointer, char delim)
 {
     string ans = "";
     char ch;
