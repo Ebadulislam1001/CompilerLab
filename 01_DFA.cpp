@@ -1,17 +1,8 @@
-// sample input for DFA that accepts strings having odd 0s and odd 1s
-// 4        // stateCount
-// 0        // initState
-// 1 3      // finalStateCount  // finalStates[]
-// 2 0 1    // alphaCount       // alphabets
-// 0 1 2    // states[]         // transitions[][]
-// 1 0 3
-// 2 3 0
-// 3 2 1
-
 #include <iostream>
 #include <string>
 #include <vector>
 #include <map>
+#include "Libraries/File_Handling.cpp"
 using namespace std;
 
 class DFA
@@ -24,36 +15,37 @@ private:
     // - a single initial state
     int initState;
     // - a finite set of final states
-    int finalStateCount;
     vector<bool> isStateFinal;
     // - a finite set of alphabets
-    int alphaCount;
     vector<char> alphabets;
     map<char, int> alphaIndex;
     // - a finite set of transitions
     vector<vector<int>> transitions;
 
 public:
-    bool configure(string path);
+    bool configure(string filePath);
     void show_table();
     void simulate();
 };
 
 int main()
 {
+    // ON START:
     DFA dfa;
-    dfa.configure("./1_DFA.txt");
-    dfa.show_table();
+    string filePath = "./01_DFA.txt";
+    bool valid = dfa.configure(filePath);
 
-    while (true)
+    // FOREVER:
+    while (valid)
     {
+        dfa.show_table();
         dfa.simulate();
     }
 }
 
-bool DFA :: configure(string path)
+bool DFA ::configure(string filePath)
 {
-    FILE *filePointer = fopen(path.c_str(), "r");
+    FILE *filePointer = fopen(filePath.c_str(), "r");
     if (filePointer == NULL)
     {
         printf("Error: file not found!!\n");
@@ -61,51 +53,61 @@ bool DFA :: configure(string path)
     }
 
     // - a finite set of states
-    fscanf(filePointer, "%d", &this->stateCount);
+    this->stateCount = read_int(filePointer);
     // printf("stateCount = %d\n", this->stateCount);
 
     // - a single initial state
-    fscanf(filePointer, "%d", &this->initState);
+    this->initState = read_int(filePointer);
     // printf("initState = %d\n", this->initState);
 
     // - a finite set of final states
-    fscanf(filePointer, "%d", &this->finalStateCount);
-    // printf("finalStateCount = %d\n", this->finalStateCount);
+    int finalStateCount = read_int(filePointer);
+    // printf("finalStateCount = %d\n", finalStateCount);
 
+    bool atleastOneFinalState = false;
     this->isStateFinal = vector<bool>(this->stateCount, false);
-    for (int state = 0; state < this->finalStateCount; state++)
+    for (int state = 0; state < finalStateCount; state++)
     {
-        int index;
-        fscanf(filePointer, "%d", &index);
-        // printf("isStateFinal = %d\n", index);
+        int index = read_int(filePointer);
+        // printf("finalState = %d\n", index);
         if (0 <= index && index < this->stateCount)
         {
             this->isStateFinal[index] = true;
+            atleastOneFinalState = true;
         }
+        else
+        {
+            printf("Error: Invalid Final State!!\n");
+        }
+    }
+    if (!atleastOneFinalState)
+    {
+        printf("Error: DFA must have atleast one final state!!\n");
+        return false;
     }
 
     // - a finite set of alphabets
-    fscanf(filePointer, "%d", &this->alphaCount);
-    // printf("alphaCount = %d\n", this->alphaCount);
+    int alphaCount = read_int(filePointer);
+    // printf("alphaCount = %d\n", alphaCount);
 
-    for (int index = 0; index < this->alphaCount; index++)
+    for (int index = 0; index < alphaCount; index++)
     {
-        char alpha;
-        fscanf(filePointer, "%*c %c", &alpha);
+        skip_chars(filePointer, 1);
+        char alpha = read_char(filePointer);
         // printf("alpha = %c, index = %d\n", alpha, index);
         this->alphabets.push_back(alpha);
         this->alphaIndex.insert({alpha, index});
     }
 
     // - a finite set of transitions
-    this->transitions = vector<vector<int>>(this->stateCount, vector<int>(this->alphaCount));
+    this->transitions = vector<vector<int>>(this->stateCount, vector<int>(alphaCount));
     for (int state = 0; state < this->stateCount; state++)
     {
-        fscanf(filePointer, "%*d");
-        for (int alpha = 0; alpha < this->alphaCount; alpha++)
+        int index = read_int(filePointer); // unused
+
+        for (int alpha = 0; alpha < alphaCount; alpha++)
         {
-            int nextState;
-            fscanf(filePointer, "%d", &nextState);
+            int nextState = read_int(filePointer);
             // printf("state = %d, alpha = %d, next = %d\n", state, alpha, nextState);
             this->transitions[state][alpha] = nextState;
         }
@@ -114,17 +116,18 @@ bool DFA :: configure(string path)
     fclose(filePointer);
     return true;
 }
-void DFA :: show_table()
+void DFA ::show_table()
 {
-    printf("DFA_:");
+    printf("\nDFA_:");
     string lineSep = "+-----+";
-    for (int alpha = 0; alpha < this->alphaCount; alpha++)
+    int alphaCount = this->alphabets.size();
+    for (int alpha = 0; alpha < alphaCount; alpha++)
     {
         lineSep += "-----+";
     }
     printf("\n%s", lineSep.c_str());
     printf("\n|   # |");
-    for (int alpha = 0; alpha < this->alphaCount; alpha++)
+    for (int alpha = 0; alpha < alphaCount; alpha++)
     {
         printf("   %c |", this->alphabets[alpha]);
     }
@@ -134,14 +137,14 @@ void DFA :: show_table()
         printf("\n%s\n|", lineSep.c_str());
         printf((this->isStateFinal[state]) ? "*" : " ");
         printf("%3d |", state);
-        for (int alpha = 0; alpha < this->alphaCount; alpha++)
+        for (int alpha = 0; alpha < alphaCount; alpha++)
         {
             printf(" %3d |", this->transitions[state][alpha]);
         }
     }
     printf("\n%s\n", lineSep.c_str());
 }
-void DFA :: simulate()
+void DFA ::simulate()
 {
     string input;
     printf("\nInput String : ");
