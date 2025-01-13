@@ -2,6 +2,11 @@
 #include<string>
 using namespace std;
 
+void skip_ints(FILE *&readPointer, int charCount)
+{
+    for (int i = 0; i < charCount; i += 1)
+        fscanf(readPointer, "%*d");
+}
 void skip_chars(FILE *&readPointer, int charCount)
 {
     for (int i = 0; i < charCount; i += 1)
